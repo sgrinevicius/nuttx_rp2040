@@ -236,6 +236,30 @@ if(CONFIG_SENSORS)
       list(APPEND SRCS bmp280_uorb.c)
     endif()
 
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # BMP280 (barômetro) 
+	#
+	# PUSH puro
+	#
+	# PUSH ou PULL em HYBRID (selecionado pelo 'choice' do Kconfig)
+    #
+    # ------------------------------------------------------------------------------------------------------------------
+    if(CONFIG_SENSORS_BMP280)
+
+        # Modo PUSH (uORB push): HPWORK + push_event espontâneo
+        if(CONFIG_SENSORS_BMP280_PUSH)
+            target_sources(drivers PRIVATE ${CMAKE_CURRENT_LIST_DIR}/bmp280_uorb_push.c)
+
+        # Modo HYBRID: PULL ou PUSH condicional (via CONFIG_SENSORS_BMP280_HYBRID_PUSH)
+        elseif(CONFIG_SENSORS_BMP280_HYBRID)
+            target_sources(drivers PRIVATE ${CMAKE_CURRENT_LIST_DIR}/bmp280_hybrid.c)
+
+        endif()
+
+    endif() # fim CONFIG_SENSORS_BMP280
+
+
     if(CONFIG_SENSORS_BME680)
       list(APPEND SRCS bme680_uorb.c)
     endif()
