@@ -1,24 +1,22 @@
-############################################################################
+########################################################################################################################
 # boards/arm/rp2040/raspberrypi-pico-w/src/Make.defs
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# Licensed to the Apache Software Foundation (ASF) under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.  The
-# ASF licenses this file to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance with the
-# License.  You may obtain a copy of the License at
+# Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements.  
+# See the NOTICE file distributed with this work for additional information regarding copyright ownership.  
+# The ASF licenses this file to you under the Apache License, Version 2.0 (the "License"); you may not use this file 
+# except in compliance with the License.  You may obtain a copy of the License at:
 #
 #   http://www.apache.org/licenses/LICENSE-2.0
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
-# License for the specific language governing permissions and limitations
-# under the License.
+# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an 
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  
+# See the License for the specific language governing permissions and limitations under the License.
 #
-############################################################################
+########################################################################################################################
+
+include $(TOPDIR)/Make.defs
 
 CSRCS = rp2040_boardinitialize.c
 CSRCS += rp2040_bringup.c
@@ -27,21 +25,39 @@ ifeq ($(CONFIG_DEV_GPIO),y)
 CSRCS += rp2040_gpio.c
 endif
 
+ifeq ($(CONFIG_ARCH_LEDS),y)
+CSRCS += rp2040_autoleds.c
+endif
+
+ifeq ($(CONFIG_USERLED),y)
+CSRCS += rp2040_userleds.c
+endif
+
 CSRCS += rp2040_firmware.c
+
+# Incluir 'etc_romfs.c' no Build do Board para formação de script de inicialização
+ifeq ($(CONFIG_ETC_ROMFS),y)
+CSRCS += etc_romfs.c
+endif
+
+ifeq ($(CONFIG_ARCH_BUTTONS),y)
+CSRCS += rp2040_buttons.c
+endif
 
 DEPPATH += --dep-path board
 VPATH += :board
 CFLAGS += ${INCDIR_PREFIX}$(TOPDIR)$(DELIM)arch$(DELIM)$(CONFIG_ARCH)$(DELIM)src$(DELIM)board$(DELIM)board
 
-############################################################################
+########################################################################################################################
 # The rules below copy the cyw43439 blob from pico_sdk
-############################################################################
+########################################################################################################################
 
 ifeq ($(CONFIG_IEEE80211_INFINEON_CYW43439),y)
 
 FIRMWARE = src$(DELIM)cyw43439.firmware.image
 
-# --- If PICO_SDK_PATH is not defined set a dummy path. --------------------
+# ----------------------------------- If PICO_SDK_PATH is not defined set a dummy path. ---------------------------------
+#
 #     See comment below.
 
 ifeq ($(PICO_SDK_PATH),)
@@ -50,10 +66,10 @@ endif
 
 FIRMWARE_SRC := $(patsubst "%",%,$(CONFIG_CYW43439_FIRMWARE_BIN_PATH))
 
-# --- If the firmware source does not exist create a dummy file. -----------
-#     NuttX built with the cyw43439 driver will not run successfully
-#     when built with this dummy file.  The sole purpose of adding
-#     this dummy is so GitHub's validation tests will not fail.
+# ---------------------------- If the firmware source does not exist create a dummy file. --------------------------------
+#
+#     NuttX built with the cyw43439 driver will not run successfully when built with this dummy file.  
+#     The sole purpose of adding this dummy is so GitHub's validation tests will not fail.
 
 $(FIRMWARE_SRC):
 	mkdir -p `dirname $(FIRMWARE_SRC)`
@@ -70,3 +86,6 @@ distclean::
 	$(call DELFILE, src$(DELIM)cyw43439.firmware.image)
 
 endif
+
+
+

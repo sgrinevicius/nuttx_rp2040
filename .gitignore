@@ -1,13 +1,10 @@
-*.a
 *.adb
 *.dba
 *.dbo
 *.asm
-*.bin
 *.d
 !*.d/
 *.dSYM
-*.elf
 *.exe
 etctmp/
 *.gcno
@@ -19,8 +16,6 @@ etctmp/
 *.lib
 *.lod
 *.lst
-*.map
-*.o
 *.obj
 *.profraw
 *.rel
@@ -95,3 +90,26 @@ SAVEconfig
 .aider*
 imx9-norimage.img
 config.txt
+
+# Caches de menuconfig (regeneráveis a partir dos defconfigs)
+**/.config
+
+# Artefatos de build
+build/
+*.o
+*.a
+*.bin
+*.elf
+*.map
+
+# Pasta de descarte / material fora do controle de versão
+_scratch/
+
+# Compactados de backup
+*.zip
+
+# Artefatos gerados pelo sistema de build do NuttX (In-Tree/Out-of-Tree)
+built/
+*.depend
+*.built
+Make.dep

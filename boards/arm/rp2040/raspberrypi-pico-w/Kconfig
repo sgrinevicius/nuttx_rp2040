@@ -1,7 +1,67 @@
+########################################################################################################################
 #
-# For a description of the syntax of this configuration file,
-# see the file kconfig-language.txt in the NuttX tools repository.
+# Arquivo: boards/arm/rp2040/raspberrypi-pico-w/Kconfig
 #
+# Título: Configuração da Placa Raspberry Pi Pico W
+#
+# Objetivo: Definir o menu de configuração da placa Pico W, expondo as opções específicas de hardware
+#           (Wi-Fi CYW43439, botões externos e LEDs externos) ao sistema Kconfig do NuttX.
+#
+# Autor: Adaptado do Kconfig original da Raspberry Pi Pico
+#
+# Hardware: Raspberry Pi Pico W (RP2040 + CYW43439)
+#
+# RTOS: Apache NuttX 13.0.0
+#
+# Modelo: Kconfig de Board (Lower-Half)
+#
+# FILOSOFIA E PAPEL ESTRUTURAL NA ARQUITETURA DE PLACA:
+#
+# Este arquivo é o ponto de entrada para as opções de configuração específicas da placa Pico W no sistema
+# Kconfig do NuttX. Ele é invocado pelo parser Kconfig quando o símbolo ARCH_BOARD_RASPBERRYPI_PICO_W está
+# ativo, e fornece as opções que aparecem no menu "Board Selection" durante 'make menuconfig'.
+#
+# O bloco 'if ARCH_BOARD_RASPBERRYPI_PICO_W / endif' garante que este menu só seja exibido quando a placa
+# estiver selecionada. Os três menuconfigs internos (RP2040_INFINEON_CYW43439, RP2040_BUTTONS e RP2040_LEDS)
+# expõem ao usuário as capacidades opcionais do hardware.
+#
+# NOTA SOBRE A CADEIA DE 'select' E OS SÍMBOLOS 'ARCH_HAVE_*':
+#
+# Os menuconfigs RP2040_BUTTONS e RP2040_LEDS são "feature gates": escolhas de usuário que ativam a cadeia
+# de símbolos ARCH_HAVE_* correspondente. Sem o 'select', as opções dependentes (ARCH_BUTTONS, ARCH_IRQBUTTONS,
+# ARCH_LEDS, USERLED) não apareceriam no Menuconfig — não por capricho, mas porque o Kconfig trata
+# ARCH_HAVE_* como capacidade de placa, visível apenas para os próprios Kconfigs.
+#
+# A cadeia tem a seguinte forma:
+#
+#   RP2040_BUTTONS (feature gate)
+#     |
+#     └── select ARCH_HAVE_BUTTONS         → destrava ARCH_BUTTONS
+#         |
+#         └── select ARCH_HAVE_IRQBUTTONS  → destrava ARCH_IRQBUTTONS
+#             |
+#             └── destrava INPUT_BUTTONS_LOWER
+#
+#   RP2040_LEDS (feature gate)
+#     └── select ARCH_HAVE_LEDS            → destrava ARCH_LEDS e USERLED
+#
+# Para a documentação completa desse mecanismo, ver 'arch/Kconfig' e 'boards/Kconfig'.
+#
+# NOTA SOBRE A SINTAXE:
+#
+# - O bloco 'if' define o escopo condicional.
+# - 'menuconfig' define um símbolo com prompt que abre um submenu, agrupando as opções dependentes.
+# - 'config' define um símbolo sem submenu próprio.
+# - 'bool' é o tipo; o texto entre aspas é o rótulo exibido no menu.
+# - 'default' define o valor padrão caso o usuário não mude.
+# - 'depends on' restringe a visibilidade a outros símbolos.
+# - 'select' força a ativação de outro símbolo (com as ressalvas documentadas no guia técnico).
+# - '---help---' introduz o texto de ajuda exibido no menu.
+#
+# Para adicionar novas opções específicas da placa (por exemplo, novos periféricos externos), basta adicionar
+# novos blocos 'config' ou 'menuconfig' dentro do 'if', ou agrupá-los em um novo 'menu'.
+#
+########################################################################################################################
 
 if ARCH_BOARD_RASPBERRYPI_PICO_W
 
@@ -9,6 +69,38 @@ menuconfig RP2040_INFINEON_CYW43439
 	bool "Has Infineon cyw43439 WiFi chip"
 	depends on IEEE80211_INFINEON_CYW43439
 	default y
+
+menuconfig RP2040_BUTTONS
+	bool "Board button support"
+	default n
+	select ARCH_HAVE_BUTTONS
+	select ARCH_HAVE_IRQBUTTONS
+	---help---
+		Enable support for the board's user button(s).  This enables the
+		generic button lower-half driver (CONFIG_INPUT_BUTTONS_LOWER)
+		and requires board-specific implementations of
+		board_button_initialize(), board_buttons() and board_button_irq().
+
+menuconfig RP2040_LEDS
+	bool "Board LED support (external LEDs)"
+	default n
+	select ARCH_HAVE_LEDS
+	---help---
+		Enables support for five external LEDs wired to RP2040 GPIOs.
+
+		The white LED (GPIO 16) is exposed through the user-space GPIO
+		driver as /dev/gpio16, allowing applications to control it
+		directly (for example, as an MQTT publish indicator).
+
+		The blue, yellow and red LEDs (GPIOs 19, 20 and 21) are exposed
+		through the user-LED API (CONFIG_USERLED) and can be controlled
+		by applications via board_userled() or /dev/userleds.
+
+		The green LED (GPIO 22) is reserved for the NuttX auto-LED
+		subsystem (CONFIG_ARCH_LEDS), which encodes boot and panic
+		events. It replaces the GPIO 25 LED of the classic Raspberry Pi
+		Pico as the system state indicator.
+
 endif
 
 if RP2040_INFINEON_CYW43439
